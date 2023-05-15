@@ -1,0 +1,74 @@
+import React, { useState } from "react";
+
+import axios from "axios";
+import { Bar } from "react-chartjs-2";
+import download from "downloadjs";
+const Histogram = () => {
+const [histogramData, setHistogramData] = useState([]);
+
+const fetchData = async () => {
+  const response = await axios.get(
+    "https://www.terriblytinytales.com/test.txt"
+  );
+  const content = response.data;
+  const words = content.split(/\s+/);
+  const frequency = {};
+  words.forEach((word) => {
+    frequency[word] = frequency[word] || 0;
+    frequency[word]++;
+  });
+  const sortedData = Object.entries(frequency)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 20);
+  setHistogramData(sortedData);
+};
+
+<Bar
+  data={{
+    labels: histogramData.map((data) => data[0]),
+    datasets: [
+      {
+        label: "Word Frequency",
+        data: histogramData.map((data) => data[1]),
+        backgroundColor: "rgba(54, 162, 235, 0.2)",
+        borderColor: "rgba(54, 162, 235, 1)",
+        borderWidth: 1,
+      },
+    ],
+  }}
+  options={{
+    scales: {
+      yAxes: [
+        {
+          ticks: {
+            beginAtZero: true,
+          },
+        },
+      ],
+    },
+  }}
+/>
+
+const exportCSV = () => {
+  const csvData = [["Word", "Frequency"]];
+  histogramData.forEach((data) => {
+    csvData.push(data);
+  });
+  const csv = csvData.map((d) => d.join(",")).join("\n");
+  download(csv, "histogram.csv", "text/csv");
+};
+
+
+return (
+  <div>
+    <button onClick={fetchData}>Submit</button>
+    {histogramData.length > 0 && (
+      <div>
+        <canvas id="axios"></canvas>
+        <button onClick={exportCSV}>Export</button>
+      </div>
+    )}
+  </div>
+);
+};
+export default Histogram;
